@@ -70,11 +70,13 @@ namespace CommonGesture {
 
       public int     primaryIndex;
       public Vector2 center;
+      public Vector2 delta;
       public Vector2 momentumMov;
 
       public void Clear() {
         primaryIndex  = 0;
         center        = Vector2.zero;
+        delta         = Vector2.zero;
       }
     }
     private State cur = new State();
@@ -128,7 +130,7 @@ namespace CommonGesture {
       if (touchCount == 0) return;
 
       bool isPinchInvoked = InvokePinchEvent();
-      if (!isPinchInvoked) {
+      if (!isPinchInvoked || true) { // test
         InvokeSwipeEvent ();
       }
     }
@@ -183,14 +185,17 @@ namespace CommonGesture {
       // calculate weighted touch center
       float   weight = 0f;
       Vector2 center = Vector2.zero;
+      Vector2 delta  = Vector2.zero;
 
       float maxMag = 0f;
       for (int i = 0; i < touchCount; i++) {
         CommonTouch touch = touches [i];
+
         float mag   = touch.mag;
         float w     = Mathf.Max(1f, 1f / (mag + 1e-5f));
         weight += w;
         center += touch.pos * w;
+        delta  += touch.delta * w;
 
         // update primary touch and its magnitude
         if (maxMag < mag) {
@@ -201,6 +206,7 @@ namespace CommonGesture {
 
       // update touch center
       cur.center = center * (1f / weight);
+      cur.delta  = delta  * (1f / weight);
     }
 
     private bool InvokePinchEvent() {
@@ -222,9 +228,8 @@ namespace CommonGesture {
     private bool InvokeSwipeEvent() {
       if (touchCount < 1) return false;
 
-      CommonTouch touch = touches [cur.primaryIndex];
-      Vector2 mov = touch.delta;
-      float   mag = touch.mag;
+      Vector2 mov = cur.delta;
+      float   mag = cur.delta.magnitude;
 
       bool isSwipeInvoked = mag >= swipeOpt.detectDist;
       if (isSwipeInvoked) {
@@ -287,8 +292,7 @@ namespace CommonGesture {
 
     private void RegisterMomentumSwipe() {
       if (touchCount == 1) {
-        CommonTouch touch = touches [cur.primaryIndex];
-        cur.momentumMov = touch.delta;
+        cur.momentumMov = cur.delta;
       }
     }
 
