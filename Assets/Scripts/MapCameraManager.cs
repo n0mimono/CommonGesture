@@ -31,7 +31,7 @@ namespace CommonGesture {
 
       // move position
       Vector2 uniMov = move * (orthCamera.orthographicSize / (Screen.height * 0.5f));
-      Vector3 cpos   = camTrans.position - new Vector3(uniMov.x, uniMov.y, 0f);
+      Vector3 cpos   = camTrans.localPosition - new Vector3(uniMov.x, uniMov.y, 0f);
 
       // clamp
       float hMargin = orthCamera.orthographicSize;
@@ -39,7 +39,7 @@ namespace CommonGesture {
       cpos.x = Mathf.Clamp(cpos.x, -(maxXPosition - wMargin), maxXPosition - wMargin);
       cpos.y = Mathf.Clamp(cpos.y, -(maxYPosition - hMargin), maxYPosition - hMargin);
 
-      camTrans.position = cpos;
+      camTrans.localPosition = cpos;
     }
 
     public void ZoomCamera(Vector2 scrCenter, Vector2 scrMovePoint, float magnitude) {
