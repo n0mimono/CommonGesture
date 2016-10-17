@@ -8,19 +8,18 @@ namespace CommonGesture {
     public int        index;
     public int        id;
     public Vector2    pos;
-    public Vector2    delta;
+    public Vector2    delta; // will be modified by Gesture class.
     public float      mag;
     public float      time;
     public TouchPhase phase;
 
     public static int MouseTouchId { get { return 200; } }
 
-    public void Clear() {
+    public CommonTouch Clear() {
       active = false;
       id     = -1;
+      return this;
     }
-
-    private static Vector2 prevMousePosition;
 
     public static CommonTouch CreateFromTouch(int i) {
       Touch touch = Input.GetTouch (i);
@@ -58,15 +57,11 @@ namespace CommonGesture {
         ct.index  = 0;
         ct.id     = MouseTouchId;
         ct.pos    = Input.mousePosition;
-        ct.delta = Vector2.zero;
-        if (ct.phase != TouchPhase.Began) {
-          ct.delta = ct.pos - prevMousePosition;
-        }
+        ct.delta  = Vector2.zero;
         ct.mag    = ct.delta.magnitude;
         ct.time   = Time.time;
       }
 
-      prevMousePosition = ct.pos;
       return ct;
     }
 

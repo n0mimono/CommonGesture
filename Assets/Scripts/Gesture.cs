@@ -85,7 +85,9 @@ namespace CommonGesture {
 
     // wrapped touch array
     private const int MaxTouchCount = 6;
-    private CommonTouch[] touches = new CommonTouch[MaxTouchCount];
+    private CommonTouch[] prevTouches = new CommonTouch[MaxTouchCount];
+    private int           prevTouchCount;
+    private CommonTouch[] touches     = new CommonTouch[MaxTouchCount];
     private int           touchCount;
 
     private Dictionary<int,CommonTouch> touchDownMap = new Dictionary<int,CommonTouch>(MaxTouchCount);
@@ -122,12 +124,21 @@ namespace CommonGesture {
     }
 
     private void UpdateCollectTouches() {
+      // clear and save prev-frame touches.
+      prevTouchCount = touchCount;
+      for (int i = 0; i < MaxTouchCount; i++) {
+        if (i < prevTouchCount) prevTouches [i] = touches [i];
+        else prevTouches [i] = prevTouches [i].Clear ();
+      }
+
+      // collect touches from Input.
       touchCount = Input.touchCount;
       for (int i = 0; i < touchCount; i++) {
         touches [i] = CommonTouch.CreateFromTouch (i);
       }
 
       #if UNITY_EDITOR
+      // collect touches from Mouse.
       CommonTouch mouseTouch = CommonTouch.CreateFromMouse();
       if (mouseTouch.active) {
         touchCount = 1;
@@ -141,6 +152,20 @@ namespace CommonGesture {
         OnPinch(Vector2.zero, -1f * Vector2.up * Screen.height * 0.25f, -1f * Screen.height * 0.25f * 0.02f);
       }
       #endif
+
+      // modify touch-delta (but too naive code, and should be optimized).
+      for (int i = 0; i < touchCount; i++) {
+        CommonTouch touch = touches [i];
+        touch.delta = Vector2.zero;
+        for (int j = 0; j < prevTouchCount; j++) {
+          CommonTouch prev = prevTouches[j];
+          if (touch.id == prev.id) {
+            touch.delta = touch.pos - prev.pos;
+            break;
+          }
+        }
+        touches [i] = touch;
+      }
     }
 
     private void UpdatePreProcess() {
@@ -154,10 +179,8 @@ namespace CommonGesture {
     private void UpdateEarlyProcess() {
       if (touchCount == 0) return;
 
-      bool isPinchInvoked = InvokePinchEvent();
-      if (true) {
-        InvokeSwipeEvent ();
-      }
+      InvokePinchEvent();
+      InvokeSwipeEvent ();
     }
 
     private void UpdateLateProcess() {
