@@ -8,8 +8,9 @@ using System;
 namespace CommonGesture {
 
   public class Demo : MonoBehaviour {
-    public Gesture          gesture;
-    public MapCameraManager mapCamera;
+    public Gesture            gesture;
+    public MapCameraManager   mapCamera;
+    public GestureAreaManager gestureArea;
 
     [Header("UI")]
     public Image circle;
@@ -72,7 +73,7 @@ namespace CommonGesture {
         StartCoroutine(EffectCircle(Color.yellow, pos, 3f));
       });
       gesture.IsTouchArea      = ((pos, id) => {
-        return true;
+        return gestureArea.IsInTouchArea(pos);
       });
       gesture.OnTouchCenter   += ((pos, id) => {
         centerDot.gameObject.SetActive(gesture.HasTouch());

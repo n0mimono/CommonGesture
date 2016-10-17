@@ -206,8 +206,6 @@ namespace CommonGesture {
     }
 
     private void BeginTouchEvent(CommonTouch touch) {
-      if (!IsTouchArea(touch.pos, touch.id)) return;
-
       RegisterTouchDown (touch);
       RegisterTouchStop (touch);
       CancelmomentumSlide ();
