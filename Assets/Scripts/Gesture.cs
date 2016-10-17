@@ -41,19 +41,19 @@ namespace CommonGesture {
     public delegate bool TouchAreaHandler(Vector2 pos, int id);
 
     // open delegates
-    public SwipeHandler     OnSwipe         = ((center, move, id) => {});
-    public SwipeHandler     OnMomentumSwpie = ((center, move, id) => {});
-    public PinchHandler     OnPinch         = ((center, pos, magnitude) => {});
-    public TouchHandler     OnTouchDown     = ((pos, id) => {});
-    public TouchHandler     OnTouching      = ((pos, id) => {});
-    public TouchHandler     OnTouchUp       = ((pos, id) => {});
-    public TouchHandler     OnTap           = ((pos, id) => {});
-    public TouchHandler     OnDoubleTap     = ((pos, id) => {});
-    public TouchHandler     OnLongTouch     = ((pos, id) => {});
-    public TouchAreaHandler IsTouchArea     = ((pos, id) => true);
+    public event SwipeHandler OnSwipe;
+    public event SwipeHandler OnMomentumSwpie;
+    public event PinchHandler OnPinch;
+    public event TouchHandler OnTouchDown;
+    public event TouchHandler OnTouching;
+    public event TouchHandler OnTouchUp;
+    public event TouchHandler OnTap;
+    public event TouchHandler OnDoubleTap;
+    public event TouchHandler OnLongTouch;
+    public TouchAreaHandler IsTouchArea = ((pos, id) => true);
 
     // dev delegates
-    public TouchHandler     OnTouchCenter   = ((pos, id) => {});
+    public event TouchHandler OnTouchCenter;
 
     public void SetActive(bool isActive) {
       cur.isActive = isActive;
@@ -90,19 +90,31 @@ namespace CommonGesture {
 
     private Dictionary<int,CommonTouch> touchDownMap = new Dictionary<int,CommonTouch>(MaxTouchCount);
     private Dictionary<int,CommonTouch> touchStopMap = new Dictionary<int,CommonTouch>(MaxTouchCount);
-    private SmoothVector sv = new SmoothVector(10, 0.10f);
-
+    private SmoothVector sv; // setup on start
+    
+    void Awake() {
+      OnSwipe         += ((center, move, id) => {});
+      OnMomentumSwpie += ((center, move, id) => {});
+      OnPinch         += ((center, pos, magnitude) => {});
+      OnTouchDown     += ((pos, id) => {});
+      OnTouching      += ((pos, id) => {});
+      OnTouchUp       += ((pos, id) => {});
+      OnTap           += ((pos, id) => {});
+      OnDoubleTap     += ((pos, id) => {});
+      OnLongTouch     += ((pos, id) => {});
+      IsTouchArea      = ((pos, id) => true);
+      OnTouchCenter   += ((pos, id) => {});
+    }
 
     void Start() {
       sv = new SmoothVector (swipeOpt.smoothArrayLength, swipeOpt.smoothDeltaRange);
-
       SetActive (true); // temp
     }
 
     void Update() {
       if (!cur.isActive) return;
 
-      UpdateCollectTouches ();
+      OnTouchCenter   = ((pos, id) => {});UpdateCollectTouches ();
       UpdatePreProcess ();
       UpdateEarlyProcess ();
       UpdateLateProcess ();
@@ -120,6 +132,13 @@ namespace CommonGesture {
       if (mouseTouch.active) {
         touchCount = 1;
         touches[0] = mouseTouch;
+      }
+
+      // pinch emulator
+      if (Input.GetKey(KeyCode.UpArrow)) {
+        OnPinch(Vector2.zero, Vector2.up * Screen.height * 0.25f, Screen.height * 0.25f * 0.02f);
+      } else if (Input.GetKey(KeyCode.DownArrow)) {
+        OnPinch(Vector2.zero, -1f * Vector2.up * Screen.height * 0.25f, -1f * Screen.height * 0.25f * 0.02f);
       }
       #endif
     }
