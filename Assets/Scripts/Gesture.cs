@@ -23,6 +23,8 @@ namespace CommonGesture {
 
       public float detectMomentumDist = 0.2f;
       public float momentumDamp       = 0.8f;
+      public int   smoothArrayLength  = 5;
+      public float smoothDeltaRange   = 0.15f;
     }
     public SwipeOptions swipeOpt;
 
@@ -70,8 +72,8 @@ namespace CommonGesture {
 
       public int     primaryIndex;
       public Vector2 center;
-      public Vector2 delta;
       public Vector2 momentumMov;
+      public Vector2 delta;
 
       public void Clear() {
         primaryIndex  = 0;
@@ -88,8 +90,12 @@ namespace CommonGesture {
 
     private Dictionary<int,CommonTouch> touchDownMap = new Dictionary<int,CommonTouch>(MaxTouchCount);
     private Dictionary<int,CommonTouch> touchStopMap = new Dictionary<int,CommonTouch>(MaxTouchCount);
+    private SmoothVector sv = new SmoothVector(10, 0.10f);
+
 
     void Start() {
+      sv = new SmoothVector (swipeOpt.smoothArrayLength, swipeOpt.smoothDeltaRange);
+
       SetActive (true); // temp
     }
 
@@ -207,6 +213,8 @@ namespace CommonGesture {
       // update touch center
       cur.center = center * (1f / weight);
       cur.delta  = delta  * (1f / weight);
+      // update smooth vector for momentum swipping
+      sv.AddValue(cur.delta, Time.deltaTime);
     }
 
     private bool InvokePinchEvent() {
@@ -292,7 +300,7 @@ namespace CommonGesture {
 
     private void RegisterMomentumSwipe() {
       if (touchCount == 1) {
-        cur.momentumMov = cur.delta;
+        cur.momentumMov = sv.CurrentVector;
       }
     }
 
