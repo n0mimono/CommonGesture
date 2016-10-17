@@ -116,7 +116,7 @@ namespace CommonGesture {
     void Update() {
       if (!cur.isActive) return;
 
-      OnTouchCenter   = ((pos, id) => {});UpdateCollectTouches ();
+      UpdateCollectTouches ();
       UpdatePreProcess ();
       UpdateEarlyProcess ();
       UpdateLateProcess ();
