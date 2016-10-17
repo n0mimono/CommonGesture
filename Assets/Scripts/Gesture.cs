@@ -155,7 +155,7 @@ namespace CommonGesture {
       if (touchCount == 0) return;
 
       bool isPinchInvoked = InvokePinchEvent();
-      if (!isPinchInvoked || true) { // test
+      if (true) {
         InvokeSwipeEvent ();
       }
     }

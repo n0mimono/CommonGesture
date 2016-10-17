@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System;
 
 namespace CommonGesture {
 
@@ -11,11 +14,16 @@ namespace CommonGesture {
     [Header("UI")]
     public Image circle;
     public Image centerDot;
+    public Text  logText;
 
     [Header("Object")]
     public Transform swipeObj;
     public Camera    camera;
+
+    [Header("Extra")]
     public Sprite    sprite;
+
+    private Queue<string> logQueue = new Queue<string> ();
 
     void Start() {
       mapCamera.SetMaxPositionFromSprite (sprite);
@@ -31,6 +39,7 @@ namespace CommonGesture {
       });
       gesture.OnSwipe         += onSwipe;
       gesture.OnMomentumSwpie += onSwipe;
+      gesture.OnSwipe         += (center, move, id) => Log("Swipe: " + center + ", " + move, Color.green);
 
       gesture.OnPinch         += ((center, pos, magnitude) => {
         RectTransform trans = centerDot.GetComponent<RectTransform>();
@@ -43,9 +52,13 @@ namespace CommonGesture {
       gesture.OnTouchDown     += ((pos, id) => {
         StartCoroutine(EffectCircle(Color.red, pos, 1f));
       });
+      gesture.OnTouchDown     += (pos, id) => Log("Down: " + id + ", " + pos, Color.red);
+
       gesture.OnTouchUp       += ((pos, id) => {
         StartCoroutine(EffectCircle(Color.blue, pos, 1f));
       });
+      gesture.OnTouchUp       += (pos, id) => Log("Up: " + id + ", " + pos, Color.blue);
+
       gesture.OnTouching      += ((pos, id) => {
         // todo: something
       });
@@ -88,6 +101,11 @@ namespace CommonGesture {
       Destroy (image.gameObject);
     }
 
+    private void Log(string text, Color color) {
+      //logQueue.Enqueue (string.Format ("<color=#{0}>{1}</color>", ColorUtility.ToHtmlStringRGB(color), text));
+      //if (logQueue.Count >= 30) logQueue.Dequeue ();
+      //logText.text = logQueue.Aggregate ((a, s) => a += "\n" + s);
+    }
   }
 
 }
