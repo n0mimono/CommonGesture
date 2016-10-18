@@ -13,12 +13,21 @@ namespace CommonGesture {
     public float      time;
     public TouchPhase phase;
 
-    public static int MouseTouchId { get { return 200; } }
+    public const int InvalidTouchId = -2000;
+    public const int MouseTouchId   =  1000;
+
+    public bool IsInBeganPhase() {
+      return phase == TouchPhase.Began;
+    }
 
     public CommonTouch Clear() {
       active = false;
-      id     = -1;
+      id     = InvalidTouchId;
       return this;
+    }
+
+    public static CommonTouch CreateTouch() {
+      return new CommonTouch ().Clear ();
     }
 
     public static CommonTouch CreateFromTouch(int i) {

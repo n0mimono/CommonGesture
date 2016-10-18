@@ -85,13 +85,13 @@ namespace CommonGesture {
 
     // wrapped touch array
     private const int MaxTouchCount = 6;
-    private CommonTouch[] prevTouches = new CommonTouch[MaxTouchCount];
+    private CommonTouch[] prevTouches;
     private int           prevTouchCount;
-    private CommonTouch[] touches     = new CommonTouch[MaxTouchCount];
+    private CommonTouch[] touches;
     private int           touchCount;
 
-    private Dictionary<int,CommonTouch> touchDownMap = new Dictionary<int,CommonTouch>(MaxTouchCount);
-    private Dictionary<int,CommonTouch> touchStopMap = new Dictionary<int,CommonTouch>(MaxTouchCount);
+    private Dictionary<int,CommonTouch> touchDownMap;
+    private Dictionary<int,CommonTouch> touchStopMap;
     private SmoothVector sv; // setup on start
     
     void Awake() {
@@ -109,8 +109,7 @@ namespace CommonGesture {
     }
 
     void Start() {
-      sv = new SmoothVector (swipeOpt.smoothArrayLength, swipeOpt.smoothDeltaRange);
-      SetActive (true); // temp
+      Initialize ();
     }
 
     void Update() {
@@ -123,12 +122,28 @@ namespace CommonGesture {
       UpdatePostProcess ();
     }
 
+    private void Initialize() {
+      sv          = new SmoothVector (swipeOpt.smoothArrayLength, swipeOpt.smoothDeltaRange);
+
+      prevTouches = new CommonTouch[MaxTouchCount];
+      touches     = new CommonTouch[MaxTouchCount];
+      for (int i = 0; i < MaxTouchCount; i++) {
+        prevTouches [i] = CommonTouch.CreateTouch();
+        touches [i] = CommonTouch.CreateTouch();
+      }
+
+      touchDownMap = new Dictionary<int,CommonTouch>(MaxTouchCount);
+      touchStopMap = new Dictionary<int,CommonTouch>(MaxTouchCount);
+
+      SetActive (true); // temp
+    }
+
     private void UpdateCollectTouches() {
       // clear and save prev-frame touches.
       prevTouchCount = touchCount;
       for (int i = 0; i < MaxTouchCount; i++) {
         if (i < prevTouchCount) prevTouches [i] = touches [i];
-        else prevTouches [i] = prevTouches [i].Clear ();
+        else prevTouches [i] = CommonTouch.CreateTouch();;
       }
 
       // collect touches from Input.
@@ -153,19 +168,38 @@ namespace CommonGesture {
       }
       #endif
 
-      // modify touch-delta (but too naive code, and should be optimized).
+      // modify touch (but too naive code, and should be optimized).
+      int actualTouchCount = 0;
       for (int i = 0; i < touchCount; i++) {
         CommonTouch touch = touches [i];
-        touch.delta = Vector2.zero;
+        CommonTouch prev  = CommonTouch.CreateTouch();
+
+        // search one-frame-prev touch
         for (int j = 0; j < prevTouchCount; j++) {
-          CommonTouch prev = prevTouches[j];
-          if (touch.id == prev.id) {
-            touch.delta = touch.pos - prev.pos;
+          CommonTouch pt = prevTouches[j];
+          if (touch.id == pt.id) {
+            prev = pt;
             break;
           }
         }
-        touches [i] = touch;
+
+        // set valid touch
+        if (prev.id == CommonTouch.InvalidTouchId) { // start to gesture
+          if (touch.IsInBeganPhase() && IsTouchArea(touch.pos, touch.id)) {
+            touch.delta = Vector2.zero;
+            touches [actualTouchCount] = touch;
+            actualTouchCount++;
+          } else {
+            // noop
+          }
+        } else { // in gesture
+          touch.delta = touch.pos - prev.pos;
+          touches [actualTouchCount] = touch;
+          actualTouchCount++;
+        }
       }
+      touchCount = actualTouchCount;
+
     }
 
     private void UpdatePreProcess() {
