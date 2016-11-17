@@ -30,11 +30,11 @@ namespace CommonGesture {
       return new CommonTouch ().Clear ();
     }
 
-    public static CommonTouch CreateFromTouch(int i) {
-      Touch touch = Input.GetTouch (i);
+    public static CommonTouch CreateFromTouch(int index) {
+      Touch touch = Input.GetTouch (index);
       CommonTouch ct = new CommonTouch () {
         active = true,
-        index  = i,
+        index  = index,
         id     = touch.fingerId,
         pos    = touch.position,
         delta  = touch.deltaPosition,

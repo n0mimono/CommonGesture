@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System;
 
 namespace CommonGesture {
@@ -115,7 +116,10 @@ namespace CommonGesture {
     void Update() {
       if (!cur.isActive) return;
 
-      UpdateCollectTouches ();
+      CollectTouches ();
+      CollectTouchForEditor ();
+      ModifyTouches ();
+
       UpdatePreProcess ();
       UpdateEarlyProcess ();
       UpdateLateProcess ();
@@ -138,7 +142,7 @@ namespace CommonGesture {
       SetActive (true); // temp
     }
 
-    private void UpdateCollectTouches() {
+    private void CollectTouches() {
       // clear and save prev-frame touches.
       prevTouchCount = touchCount;
       for (int i = 0; i < MaxTouchCount; i++) {
@@ -151,8 +155,10 @@ namespace CommonGesture {
       for (int i = 0; i < touchCount; i++) {
         touches [i] = CommonTouch.CreateFromTouch (i);
       }
+    }
 
-      #if UNITY_EDITOR
+    [Conditional("UNITY_EDITOR")]
+    private void CollectTouchForEditor() {
       // collect touches from Mouse.
       CommonTouch mouseTouch = CommonTouch.CreateFromMouse();
       if (mouseTouch.active) {
@@ -161,13 +167,16 @@ namespace CommonGesture {
       }
 
       // pinch emulator
+      float quarterHeight = 0.25f * Screen.height;
+      float amplitude     = 0.02f;
       if (Input.GetKey(KeyCode.UpArrow)) {
-        OnPinch(Vector2.zero, Vector2.up * Screen.height * 0.25f, Screen.height * 0.25f * 0.02f);
+        OnPinch(Vector2.zero, Vector2.up * quarterHeight, quarterHeight * amplitude);
       } else if (Input.GetKey(KeyCode.DownArrow)) {
-        OnPinch(Vector2.zero, -1f * Vector2.up * Screen.height * 0.25f, -1f * Screen.height * 0.25f * 0.02f);
+        OnPinch(Vector2.zero, -1f * Vector2.up * quarterHeight, -1f * quarterHeight * amplitude);
       }
-      #endif
+    }
 
+    private void ModifyTouches() {
       // modify touch (but too naive code, and should be optimized).
       int actualTouchCount = 0;
       for (int i = 0; i < touchCount; i++) {
@@ -199,7 +208,6 @@ namespace CommonGesture {
         }
       }
       touchCount = actualTouchCount;
-
     }
 
     private void UpdatePreProcess() {

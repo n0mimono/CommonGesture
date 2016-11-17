@@ -24,7 +24,7 @@ namespace CommonGesture {
     [Header("Extra")]
     public Sprite    sprite;
 
-    private Queue<string> logQueue = new Queue<string> ();
+    //private Queue<string> logQueue = new Queue<string> ();
 
     void Start() {
       mapCamera.SetMaxPositionFromSprite (sprite);
